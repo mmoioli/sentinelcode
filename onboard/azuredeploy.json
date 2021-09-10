@@ -114,36 +114,7 @@
                 "promotionCode": ""
             }
         },
-        {
-            "condition": "[not(empty(parameters('enableAdditionalLASolutions')))]",
-            "name": "enableAdditionalLASolutions",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2019-05-01",
-            "dependsOn": [
-                "[resourceId('Microsoft.OperationsManagement/solutions/', concat('SecurityInsights','(', variables('uniqueWorkspace'),')'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[uri(parameters('_artifactsLocation'), concat('azure-sentinel/linkedtemplates/log-analytics/additionalSolutions.json', parameters('_artifactsLocationSasToken')))]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "solutionTypes": {
-                        "value": "[parameters('enableAdditionalLASolutions')]"
-                    },
-                    "workspaceName": {
-                        "value": "[variables('uniqueWorkspace')]"
-                    },
-                    "workspaceId": {
-                         "value": "[resourceId('Microsoft.OperationalInsights/workspaces/', variables('uniqueWorkspace'))]"
-                     },
-                    "location": {
-                        "value": "[parameters('location')]"
-                    }
-                }
-            }
-        },
+   
         {
             "condition": "[not(empty(parameters('enableDataConnectorsKind')))]",
             "name": "enableDataConnectorsKind",
@@ -178,7 +149,7 @@
             }
         },
                 {
-            "condition": "[and(parameters('postAnalyticRules'),not(empty(parameters('userAssignedIdentityName'))),contains(parameters('enableAdditionalLASolutions'),'ServiceMap'),contains(parameters('enableAdditionalLASolutions'),'WireData2'))]",
+            "condition": "[and(parameters('postAnalyticRules'),not(empty(parameters('userAssignedIdentityName'))),contains(parameters'ServiceMap'),contains(parameters 'WireData2'))]",
             "name": "azCLIPostAnalyticRules",
             "type": "Microsoft.Resources/deploymentScripts",
             "apiVersion": "2019-10-01-preview",
