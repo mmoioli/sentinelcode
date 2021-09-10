@@ -1,4 +1,4 @@
-#"This is an example taken from sentinel 2go#"
+#example_fromSentinel2go_
   
 {
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
