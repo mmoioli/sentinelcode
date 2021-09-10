@@ -1,3 +1,5 @@
+#"This is an example taken from sentinel 2go#"
+  
 {
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
@@ -46,11 +48,24 @@
             },
             "defaultValue": true
         },
-       
+        "enableAdditionalLASolutions": {
+            "type": "array",
+            "metadata": {
+                "description": "Additional Log Solutions that you can install on the top of your Log Analytics Workspace. (e.g [\"ServiceMap\",\"WireData2\",\"InfrastructureInsights\"])"
+            },
+            "defaultValue": []
+        },
         "enableDataConnectorsKind": {
             "type": "array",
             "metadata": {
                 "description": "The kind of data connectors that can be deployed via ARM templates are the following: [\"AzureActivityLog\",\"SecurityInsightsSecurityEventCollectionConfiguration\",\"WindowsFirewall\",\"DnsAnalytics\"], Reference: https://docs.microsoft.com/en-us/azure/templates/microsoft.operationalinsights/2020-03-01-preview/workspaces/datasources#microsoftoperationalinsightsworkspacesdatasources-object"
+            },
+            "defaultValue": []
+        },
+        "enableLAFunctions": {
+            "type": "array",
+            "metadata": {
+                "description": "List of functions to enable in your Log Analytics Workspace. Available: Sysmon"
             },
             "defaultValue": []
         },
@@ -59,8 +74,21 @@
             "metadata": {
                 "description": "If set to true, Analytic rules from the official Azure Sentinel GitHub Repository https://github.com/Azure/Azure-Sentinel/tree/master/Detections translated to JSON files in https://github.com/OTRF/Blacksmith/tree/azure/templates/azure/Sentinel2Go/azure-sentinel/analytic-rules are created in your Log Analytics workspace. Remember that several queries need specific data tables to be enabled in Log Analytics."
             },
-            "defaultValue": true
-
+            "defaultValue": false
+        },
+        "userAssignedIdentityName": {
+            "type": "string",
+            "metadata": {
+                "description": "Paremeter needed to upload Sentinel's analytic rules from the Azure-Sentinel GitHub repo. This parameter requires a user assigned managed identity with a Contributor role at a subscription scope. Reference: https://docs.microsoft.com/en-us/azure/role-based-access-control/role-assignments-cli#user-at-a-subscription-scope"
+            },
+            "defaultValue": ""
+        },
+        "_artifactsLocation": {
+            "type": "string",
+            "metadata": {
+                "description": "The location of resources"
+            },
+            "defaultValue": "https://raw.githubusercontent.com/OTRF/Azure-Sentinel2Go/master/"
         },
         "_artifactsLocationSasToken": {
             "type": "securestring",
@@ -114,7 +142,36 @@
                 "promotionCode": ""
             }
         },
-   
+        {
+            "condition": "[not(empty(parameters('enableAdditionalLASolutions')))]",
+            "name": "enableAdditionalLASolutions",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2019-05-01",
+            "dependsOn": [
+                "[resourceId('Microsoft.OperationsManagement/solutions/', concat('SecurityInsights','(', variables('uniqueWorkspace'),')'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[uri(parameters('_artifactsLocation'), concat('azure-sentinel/linkedtemplates/log-analytics/additionalSolutions.json', parameters('_artifactsLocationSasToken')))]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "solutionTypes": {
+                        "value": "[parameters('enableAdditionalLASolutions')]"
+                    },
+                    "workspaceName": {
+                        "value": "[variables('uniqueWorkspace')]"
+                    },
+                    "workspaceId": {
+                         "value": "[resourceId('Microsoft.OperationalInsights/workspaces/', variables('uniqueWorkspace'))]"
+                     },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    }
+                }
+            }
+        },
         {
             "condition": "[not(empty(parameters('enableDataConnectorsKind')))]",
             "name": "enableDataConnectorsKind",
@@ -148,8 +205,32 @@
                 }
             }
         },
-                {
-            "condition": "[and(parameters('postAnalyticRules'),not(empty(parameters('userAssignedIdentityName'))),contains(parameters'ServiceMap'),contains(parameters 'WireData2'))]",
+        {
+            "condition": "[not(empty(parameters('enableLAFunctions')))]",
+            "name": "deployLAFunctions",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2019-05-01",
+            "dependsOn": [
+                "[resourceId('Microsoft.OperationalInsights/workspaces/', variables('uniqueWorkspace'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[uri(parameters('_artifactsLocation'), concat('azure-sentinel/linkedtemplates/log-analytics/functions.json', parameters('_artifactsLocationSasToken')))]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "workspaceName": {
+                        "value": "[variables('uniqueWorkspace')]"
+                    },
+                    "enableLAFunctions": {
+                        "value": "[parameters('enableLAFunctions')]"
+                    }
+                }
+            }
+        },
+        {
+            "condition": "[and(parameters('postAnalyticRules'),not(empty(parameters('userAssignedIdentityName'))),contains(parameters('enableAdditionalLASolutions'),'ServiceMap'),contains(parameters('enableAdditionalLASolutions'),'WireData2'))]",
             "name": "azCLIPostAnalyticRules",
             "type": "Microsoft.Resources/deploymentScripts",
             "apiVersion": "2019-10-01-preview",
@@ -191,3 +272,16 @@
         }
     }
 }
+© 2021 GitHub, Inc.
+Terms
+Privacy
+Security
+Status
+Docs
+Contact GitHub
+Pricing
+API
+Training
+Blog
+About
+Loading complete
