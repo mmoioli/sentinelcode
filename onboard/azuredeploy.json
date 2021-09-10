@@ -46,13 +46,7 @@
             },
             "defaultValue": true
         },
-        "enableAdditionalLASolutions": {
-            "type": "array",
-            "metadata": {
-                "description": "Additional Log Solutions that you can install on the top of your Log Analytics Workspace. (e.g [\"ServiceMap\",\"WireData2\",\"InfrastructureInsights\"])"
-            },
-            "defaultValue": []
-        },
+       
         "enableDataConnectorsKind": {
             "type": "array",
             "metadata": {
@@ -183,31 +177,7 @@
                 }
             }
         },
-        {
-            "condition": "[not(empty(parameters('enableLAFunctions')))]",
-            "name": "deployLAFunctions",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2019-05-01",
-            "dependsOn": [
-                "[resourceId('Microsoft.OperationalInsights/workspaces/', variables('uniqueWorkspace'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[uri(parameters('_artifactsLocation'), concat('azure-sentinel/linkedtemplates/log-analytics/functions.json', parameters('_artifactsLocationSasToken')))]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "workspaceName": {
-                        "value": "[variables('uniqueWorkspace')]"
-                    },
-                    "enableLAFunctions": {
-                        "value": "[parameters('enableLAFunctions')]"
-                    }
-                }
-            }
-        },
-        {
+                {
             "condition": "[and(parameters('postAnalyticRules'),not(empty(parameters('userAssignedIdentityName'))),contains(parameters('enableAdditionalLASolutions'),'ServiceMap'),contains(parameters('enableAdditionalLASolutions'),'WireData2'))]",
             "name": "azCLIPostAnalyticRules",
             "type": "Microsoft.Resources/deploymentScripts",
